@@ -11,15 +11,16 @@ import {
   HeartHandshake,
 } from 'lucide-react'
 
-export default function Contacto() {
-  const [formulario, setFormulario] = useState({
-    nombre: '',
-    email: '',
-    tipo: '',
-    mensaje: '',
-  })
+const FORMULARIO_INICIAL = {
+  nombre: '',
+  email: '',
+  tipo: '',
+  mensaje: '',
+}
 
-  const [aviso, setAviso] = useState(false)
+export default function Contacto() {
+  const [formulario, setFormulario] = useState(FORMULARIO_INICIAL)
+  const [estadoEnvio, setEstadoEnvio] = useState('inicial')
 
   const actualizarCampo = (evento) => {
     const { name, value } = evento.target
@@ -29,15 +30,46 @@ export default function Contacto() {
       [name]: value,
     }))
 
-    setAviso(false)
+    setEstadoEnvio('inicial')
   }
 
-  const enviarFormulario = (evento) => {
+  const enviarFormulario = async (evento) => {
     evento.preventDefault()
 
-    // El formulario todavía no tiene un servicio
-    // de envío conectado.
-    setAviso(true)
+    if (estadoEnvio === 'enviando') return
+
+    setEstadoEnvio('enviando')
+
+    try {
+      const respuesta = await fetch(
+        'https://formspree.io/f/xaeedlqy',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            nombre: formulario.nombre,
+            email: formulario.email,
+            tipo: formulario.tipo,
+            mensaje: formulario.mensaje,
+            _replyto: formulario.email,
+            _subject: 'Nueva consulta desde Red Primer Empleo',
+          }),
+        }
+      )
+
+      if (!respuesta.ok) {
+        throw new Error('No se pudo enviar la consulta')
+      }
+
+      setEstadoEnvio('exito')
+      setFormulario({ ...FORMULARIO_INICIAL })
+    } catch (error) {
+      console.error('Error al enviar el formulario:', error)
+      setEstadoEnvio('error')
+    }
   }
 
   return (
@@ -192,7 +224,7 @@ export default function Contacto() {
 
             <p className="mb-5 text-sm leading-relaxed text-slate-600 md:mb-7">
               Completá los siguientes campos
-              para preparar tu consulta.
+              para enviarnos tu consulta.
             </p>
 
             <form
@@ -215,10 +247,11 @@ export default function Contacto() {
                   type="text"
                   autoComplete="name"
                   required
+                  disabled={estadoEnvio === 'enviando'}
                   value={formulario.nombre}
                   onChange={actualizarCampo}
                   placeholder="Ingresá tu nombre"
-                  className="block w-full min-w-0 rounded-lg border border-slate-300 px-3 py-3 text-base outline-none focus:border-[#267FA9] sm:px-4"
+                  className="block w-full min-w-0 rounded-lg border border-slate-300 px-3 py-3 text-base outline-none focus:border-[#267FA9] disabled:opacity-60 sm:px-4"
                 />
               </div>
 
@@ -237,10 +270,11 @@ export default function Contacto() {
                   type="email"
                   autoComplete="email"
                   required
+                  disabled={estadoEnvio === 'enviando'}
                   value={formulario.email}
                   onChange={actualizarCampo}
                   placeholder="nombre@correo.com"
-                  className="block w-full min-w-0 rounded-lg border border-slate-300 px-3 py-3 text-base outline-none focus:border-[#267FA9] sm:px-4"
+                  className="block w-full min-w-0 rounded-lg border border-slate-300 px-3 py-3 text-base outline-none focus:border-[#267FA9] disabled:opacity-60 sm:px-4"
                 />
               </div>
 
@@ -257,9 +291,10 @@ export default function Contacto() {
                   id="tipo"
                   name="tipo"
                   required
+                  disabled={estadoEnvio === 'enviando'}
                   value={formulario.tipo}
                   onChange={actualizarCampo}
-                  className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-3 text-base outline-none focus:border-[#267FA9] sm:px-4"
+                  className="block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-3 text-base outline-none focus:border-[#267FA9] disabled:opacity-60 sm:px-4"
                 >
                   <option value="">
                     Seleccioná una opción
@@ -297,40 +332,59 @@ export default function Contacto() {
                   name="mensaje"
                   rows={5}
                   required
+                  disabled={estadoEnvio === 'enviando'}
                   value={formulario.mensaje}
                   onChange={actualizarCampo}
                   placeholder="Escribí tu consulta..."
-                  className="block w-full min-w-0 resize-y rounded-lg border border-slate-300 px-3 py-3 text-base outline-none focus:border-[#267FA9] sm:px-4"
+                  className="block w-full min-w-0 resize-y rounded-lg border border-slate-300 px-3 py-3 text-base outline-none focus:border-[#267FA9] disabled:opacity-60 sm:px-4"
                 />
               </div>
 
-              {/* AVISO DE DEMOSTRACIÓN */}
+              {/* INFORMACIÓN DEL FORMULARIO */}
               <div className="flex items-start gap-2 rounded-lg bg-[#F5FBFE] p-3 sm:gap-3 sm:p-4">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#267FA9]" />
 
                 <p className="text-xs leading-relaxed text-slate-600">
-                  Formulario de demostración del proyecto
-                  académico. Por el momento, los datos
-                  no se envían ni se almacenan.
+                  Los datos que ingreses se enviarán
+                  a través de Formspree para recibir
+                  y responder tu consulta.
+                  No incluyas información sensible.
                 </p>
               </div>
 
+              {/* BOTÓN DE ENVÍO */}
               <button
                 type="submit"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#ED6050] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#d94d3e] sm:gap-3 sm:px-6 sm:py-4 sm:text-base"
+                disabled={estadoEnvio === 'enviando'}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#ED6050] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#d94d3e] disabled:cursor-not-allowed disabled:opacity-60 sm:gap-3 sm:px-6 sm:py-4 sm:text-base"
               >
-                Probar formulario
+                {estadoEnvio === 'enviando'
+                  ? 'Enviando...'
+                  : 'Enviar consulta'}
+
                 <Send className="h-[18px] w-[18px] shrink-0 sm:h-[19px] sm:w-[19px]" />
               </button>
 
-              {aviso && (
+              {/* CONFIRMACIÓN DE ENVÍO */}
+              {estadoEnvio === 'exito' && (
                 <div
                   role="status"
+                  aria-live="polite"
                   className="rounded-lg border border-[#D4EAF5] bg-[#F5FBFE] p-4 text-sm leading-relaxed text-[#185A7A]"
                 >
-                  El formulario se completó correctamente.
-                  Esta es una demostración: la consulta
-                  no fue enviada.
+                  ¡Tu consulta fue enviada correctamente!
+                  Gracias por comunicarte con Red Primer Empleo.
+                </div>
+              )}
+
+              {/* ERROR DE ENVÍO */}
+              {estadoEnvio === 'error' && (
+                <div
+                  role="alert"
+                  className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-relaxed text-red-700"
+                >
+                  No pudimos enviar tu consulta.
+                  Verificá tu conexión e intentá nuevamente.
                 </div>
               )}
 

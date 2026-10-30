@@ -17,18 +17,32 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
-      <nav className="mx-auto max-w-7xl px-6 py-4">
+      <nav className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
 
-        <div className="flex items-center justify-between gap-5">
+        <div className="flex items-center justify-between gap-3">
 
-          {/* LOGO */}
+          {/* LOGO Y NOMBRE DEL PROYECTO */}
           <Link
             to="/"
             onClick={cerrarMenu}
-            className="text-lg font-bold text-[#267FA9] sm:text-2xl"
+            className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3"
+            aria-label="Red Primer Empleo - Ir al inicio"
           >
-            RPE <span className="text-[#ED6050]">|</span>{' '}
-            Red Primer Empleo
+            <img
+              src="/logo-rpe.png"
+              alt="Logo de Red Primer Empleo"
+              className="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14"
+            />
+
+            <div className="flex min-w-0 flex-col leading-tight">
+              <span className="text-lg font-extrabold text-[#267FA9] sm:text-xl">
+                RPE
+              </span>
+
+              <span className="text-[11px] font-semibold text-[#ED6050] sm:text-sm">
+                Red Primer Empleo
+              </span>
+            </div>
           </Link>
 
           {/* MENÚ DE ESCRITORIO */}
@@ -88,7 +102,7 @@ export default function Navbar() {
             }
             aria-expanded={menuAbierto}
             aria-controls="menu-movil"
-            className="rounded-lg p-2 text-[#267FA9] transition hover:bg-[#E5F3FA] xl:hidden"
+            className="shrink-0 rounded-lg p-2 text-[#267FA9] transition hover:bg-[#E5F3FA] xl:hidden"
           >
             {menuAbierto ? (
               <X size={28} />
